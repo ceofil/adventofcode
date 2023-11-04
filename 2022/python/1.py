@@ -2,7 +2,7 @@ import heapq
 import random
 
 calories = []
-input_file = 'input'
+input_file = 'inputs/1'
 with open(input_file, 'r') as fd:
     currentSum = 0
     maxSum = 0
