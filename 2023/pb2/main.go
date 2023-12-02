@@ -18,18 +18,17 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	// 12 red cubes, 13 green cubes, and 14 blue cubes
-	config := map[string]int{
-		"red":   12,
-		"green": 13,
-		"blue":  14,
-	}
 	sum := 0
 	for scanner.Scan() {
+		maxes := map[string]int{
+			"red":   0,
+			"green": 0,
+			"blue":  0,
+		}
 		line := scanner.Text()
-		game_is_valid := true
 		game := strings.Split(line, ":")
-		key, value := game[0], game[1]
-		game_id, _ := strconv.Atoi(strings.Split(key, " ")[1])
+		_, value := game[0], game[1]
+		// game_id, _ := strconv.Atoi(strings.Split(key, " ")[1])
 		draws := strings.Split(value, ";")
 		for _, draw := range draws {
 			pairs := strings.Split(draw, ",")
@@ -38,14 +37,12 @@ func main() {
 				count, _ := strconv.Atoi(split_pair[0])
 				color := split_pair[1]
 				// fmt.Println(pair, color, count)
-				if count > config[color] {
-					game_is_valid = false
+				if count > maxes[color] {
+					maxes[color] = count
 				}
 			}
 		}
-		if game_is_valid {
-			sum += game_id
-		}
+		sum += maxes["red"] * maxes["green"] * maxes["blue"]
 	}
 	fmt.Println(sum)
 }
