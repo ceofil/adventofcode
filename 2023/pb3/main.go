@@ -8,19 +8,20 @@ import (
 	"unicode"
 )
 
-func position_near_symbol(x int, y int, rows []string) bool {
-	for dy := y - 1; dy <= y+1; dy++ {
-		for dx := x - 1; dx <= x+1; dx++ {
-			if !(0 <= dy && dy < len(rows) && 0 <= dx && dx < len(rows[0])) {
-				continue
-			}
-			if !(rows[dy][dx] == '.' || unicode.IsDigit(rune(rows[dy][dx]))) {
-				// fmt.Printf("here %c \n", rows[dy][dx])
-				return true
-			}
-		}
-	}
-	return false
+type Pos struct {
+	x, y int
+}
+
+type Number struct {
+	pos           Pos
+	length, value int
+}
+
+func is_adjacent(num Number, symbol_pos Pos) bool {
+	return symbol_pos.y >= num.pos.y-1 &&
+		symbol_pos.y <= num.pos.y+1 &&
+		symbol_pos.x >= num.pos.x-1 &&
+		symbol_pos.x <= num.pos.x+num.length
 }
 
 func main() {
@@ -30,29 +31,64 @@ func main() {
 		return
 	}
 	rows := strings.Split(string(fileContent), "\n")
-	result := 0
+
+	numbers := []Number{}
+	symbols := []Pos{}
 	for y := 0; y < len(rows); y++ {
-		number := 0
-		near_symbol := false
+		nx, ny, length, value := 0, 0, 0, 0
 		for x, char := range rows[y] {
 			if unicode.IsDigit(char) {
-				near_symbol = near_symbol || position_near_symbol(x, y, rows)
-				digit, _ := strconv.Atoi(string(char))
-				number = number*10 + digit
-			} else {
-				if near_symbol {
-					result += number
+				if length == 0 {
+					nx, ny = x, y
 				}
-				number = 0
-				near_symbol = false
+				digit, _ := strconv.Atoi(string(char))
+				value = value*10 + digit
+				length += 1
+				continue
+			}
+			if length > 0 {
+				numbers = append(
+					numbers,
+					Number{
+						pos:    Pos{x: nx, y: ny},
+						length: length,
+						value:  value,
+					},
+				)
+				nx, ny, length, value = 0, 0, 0, 0
+			}
+			if !(rows[y][x] == '.' || unicode.IsDigit(rune(rows[y][x]))) {
+				symbols = append(symbols, Pos{x: x, y: y})
 			}
 		}
-		if near_symbol {
-			result += number
+		if length > 0 {
+			numbers = append(
+				numbers,
+				Number{
+					pos:    Pos{x: nx, y: ny},
+					length: length,
+					value:  value,
+				},
+			)
+			nx, ny, length, value = 0, 0, 0, 0
 		}
-		number = 0
-		near_symbol = false
 	}
-
+	result := 0
+	for _, symbol := range symbols {
+		adjacency := 0
+		gear_ratio := 1
+		is_star := rows[symbol.y][symbol.x] == '*'
+		for _, number := range numbers {
+			if is_adjacent(number, symbol) {
+				if is_star {
+					adjacency += 1
+					gear_ratio *= number.value
+				}
+			}
+		}
+		if adjacency == 2 {
+			result += gear_ratio
+		}
+	}
 	fmt.Println("result:", result)
 }
