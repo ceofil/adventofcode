@@ -1,24 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 func main() {
-	file, err := os.Open(os.Args[1])
+	fileContent, err := os.ReadFile(os.Args[1])
 	if err != nil {
-		fmt.Println("Error opening file:", err)
+		fmt.Println("Error reading file:", err)
 		return
 	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-
-	result := 0
-	for scanner.Scan() {
-		line := scanner.Text()
-		fmt.Println(line)
-	}
-	fmt.Println(result)
+	lines := strings.Split(string(fileContent), "\n")
+	fmt.Println(len(lines))
 }
