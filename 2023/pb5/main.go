@@ -5,7 +5,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Interval struct {
@@ -66,6 +65,33 @@ func apply_mapper(m Mapper, s Interval) ([]Interval, []Interval) {
 	return mapped, unmapped
 }
 
+func apply_all_mappers(mappers []Mapper, seed Interval) []Interval {
+	mapped := []Interval{}
+	seeds_to_process := []Interval{}
+	seeds_to_process = append(seeds_to_process, seed)
+
+	for len(seeds_to_process) > 0 {
+		new_seeds_to_process := []Interval{}
+		for _, seed_to_process := range seeds_to_process {
+			seed_intersects_with_mapper := false
+			for _, mapper := range mappers {
+				// fmt.Println("\nMAPPER: ", mapper)
+				mapped_seeds, unmapped_seeds := apply_mapper(mapper, seed_to_process)
+				if len(mapped_seeds) > 0 {
+					mapped = append(mapped, mapped_seeds...)
+					new_seeds_to_process = append(new_seeds_to_process, unmapped_seeds...)
+					seed_intersects_with_mapper = true
+					break
+				}
+			}
+			if !seed_intersects_with_mapper {
+				mapped = append(mapped, seed_to_process)
+			}
+		}
+		seeds_to_process = new_seeds_to_process
+	}
+	return mapped
+}
 func main() {
 	fileContent, err := os.ReadFile(os.Args[1])
 	if err != nil {
@@ -96,50 +122,8 @@ func main() {
 		}
 		all_new_seeds := []Interval{}
 		for _, seed := range seeds {
-			// fmt.Println("\n-----------------------\nprocessing seed:\t", seed)
-			current_seeds := []Interval{}
-			current_seeds = append(current_seeds, seed)
-			current_new_seeds := []Interval{}
-			for iteration_idx := 0; len(current_seeds) > 0; iteration_idx++ {
-				if iteration_idx%1 == 0 && iteration_idx > 0 {
-					// fmt.Println(iteration_idx)
-					fmt.Println(len(current_seeds))
-				}
-				time.Sleep(time.Second)
-				current_seed := current_seeds[0]
-				// fmt.Println("seed from queue\t\t", current_seed)
-				current_seeds = current_seeds[1:]
-				// fmt.Println("after", current_seeds)
-				// check if intersects with any mapper
-				any_intersection := false
-				for _, mapper := range mappers {
-					if interesct(current_seed, mapper.src) {
-						// fmt.Println("inter", mapper)
-						any_intersection = true
-						break
-					}
-				}
-				if !any_intersection {
-					current_new_seeds = append(current_new_seeds, current_seed)
-					// fmt.Printf("no intersection continue\n")
-					continue
-				}
-
-				for _, mapper := range mappers {
-					// fmt.Println("\nMAPPER: ", mapper)
-					mapped, unmapped := apply_mapper(mapper, current_seed)
-					// fmt.Println("mapped: ", mapped, "unmapped: ", unmapped)
-					if len(mapped) > 0 {
-						//if some intersection occured
-						fmt.Printf("+%d  -%d  \n", len(unmapped), len(mapped))
-						current_new_seeds = append(current_new_seeds, mapped...)
-						current_seeds = append(current_seeds, unmapped...)
-					}
-				}
-				// fmt.Println("end loop currend_seeds", current_seeds)
-				// break
-			}
-			all_new_seeds = append(all_new_seeds, current_new_seeds...)
+			mapped := apply_all_mappers(mappers, seed)
+			all_new_seeds = append(all_new_seeds, mapped...)
 		}
 		seeds = all_new_seeds
 		// fmt.Println("\n\nseeds after group", group_idx+1, seeds)
