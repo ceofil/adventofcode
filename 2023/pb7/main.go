@@ -18,17 +18,31 @@ func compute_strength(cards string) int {
 	counter := map[rune]int{}
 	n_of_a_kind := map[int]int{}
 
+	j_count := 0
 	for _, card := range cards {
+		if card == rune('J') {
+			j_count++
+			continue
+		}
 		counter[card]++
 	}
-
 	for _, value := range counter {
-		// fmt.Println("here", key, value)
-		if value > 1 {
-			n_of_a_kind[value]++
-		}
+		n_of_a_kind[value]++
 	}
-	// fmt.Println(n_of_a_kind, cards)
+
+	for i := 0; i < j_count; i++ {
+		max_n := 0
+		for n, count := range n_of_a_kind {
+			if count > 0 && n > max_n {
+				max_n = n
+			}
+		}
+		if max_n == 5 {
+			continue
+		}
+		n_of_a_kind[max_n]--
+		n_of_a_kind[max_n+1]++
+	}
 
 	if n_of_a_kind[5] == 1 {
 		return 6
@@ -68,7 +82,7 @@ func main() {
 		hands = append(hands, Hand{cards: cards, bid: bid, strength: compute_strength(cards)})
 	}
 
-	CARDS := "23456789TJQKA"
+	CARDS := "J23456789TQKA"
 	sort.Slice(hands, func(i, j int) bool {
 		if hands[i].strength < hands[j].strength {
 			return true
@@ -83,12 +97,11 @@ func main() {
 			}
 		}
 		panic("two equal hands")
-		// return false
 	})
 
 	result := 0
 	for rank, hand := range hands {
-		fmt.Println(hand.cards, rank, "strenght", hand.strength)
+		fmt.Println(hand.cards, rank+1, "strength", hand.strength)
 		result += hand.bid * (rank + 1)
 	}
 	fmt.Println("result: ", result)
