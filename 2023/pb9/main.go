@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
 
 func get_prediction(line string) int {
-	last_value_in_each_row := []int{}
+	first_value_in_each_row := []int{}
 	split_line := strings.Split(line, " ")
 	row := []int{}
 	for _, num_str := range split_line {
@@ -20,7 +21,7 @@ func get_prediction(line string) int {
 	for !all_zeros {
 		fmt.Println(len(row))
 		new_row := []int{}
-		last_value_in_each_row = append(last_value_in_each_row, row[len(row)-1])
+		first_value_in_each_row = append(first_value_in_each_row, row[0])
 		all_zeros = true
 		for idx := 1; idx < len(row); idx++ {
 			new_value := row[idx] - row[idx-1]
@@ -33,8 +34,9 @@ func get_prediction(line string) int {
 	}
 
 	prediction := 0
-	for _, value := range last_value_in_each_row {
-		prediction += value
+	slices.Reverse(first_value_in_each_row)
+	for _, value := range first_value_in_each_row {
+		prediction = value - prediction
 	}
 
 	return prediction
