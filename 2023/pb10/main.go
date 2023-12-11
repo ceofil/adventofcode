@@ -62,7 +62,20 @@ func leadsTo(a, b Pos, lines []string) bool {
 }
 
 func connected(a, b Pos, lines []string) bool {
+	if !(validPos(a, len(lines[0]), len(lines)) &&
+		validPos(b, len(lines[0]), len(lines))) {
+		return false
+	}
 	return leadsTo(a, b, lines) && leadsTo(b, a, lines)
+}
+
+func contains(haystack []rune, needle rune) bool {
+	for _, element := range haystack {
+		if element == needle {
+			return true
+		}
+	}
+	return false
 }
 
 func main() {
@@ -106,7 +119,6 @@ func main() {
 	mobile := first_step
 	steps := 1
 	for mobile != s {
-		fmt.Println(mobile)
 		found_next := false
 		for _, dir := range all_directions {
 			next_pos := add(mobile, dir)
@@ -136,5 +148,81 @@ func main() {
 		}
 		steps += 1
 	}
-	fmt.Println("result", steps/2)
+
+	s_visited_neighbors := []Pos{}
+	for _, dir := range all_directions {
+		next_pos := add(s, dir)
+		if !validPos(next_pos, width, height) {
+			continue
+		}
+		next_visited := visited[next_pos.y][next_pos.x]
+		if next_visited {
+			s_visited_neighbors = append(s_visited_neighbors, dir)
+		}
+	}
+
+	//started part two and somehow decided to use camel case
+	sRune := ' '
+	for pipeRune, pipe := range runeToPipe {
+		to := pipe.to == s_visited_neighbors[0] || pipe.to == s_visited_neighbors[1]
+		from := pipe.from == s_visited_neighbors[0] || pipe.from == s_visited_neighbors[1]
+		if to && from {
+			sRune = pipeRune
+			break
+		}
+	}
+	lineAsRunes := []rune(lines[s.y])
+	lineAsRunes[s.x] = sRune
+	lines[s.y] = string(lineAsRunes)
+
+	type PipeInfo struct {
+		start, end bool
+		y          int
+	}
+	pipeInfo := map[rune]PipeInfo{
+		'-': {false, false, 0},
+		'|': {false, false, 0},
+		'J': {false, true, -1},
+		'7': {false, true, 1},
+		'L': {true, false, -1},
+		'F': {true, false, 1},
+	}
+
+	insideLoopCount := 0
+	for y := 0; y < height; y++ {
+		contour := []bool{}
+		// test := []Pos{}
+		pipeStartY := 0
+		for x := 0; x < width; x++ {
+			chr := rune(lines[y][x])
+			info := pipeInfo[rune(lines[y][x])]
+			if !visited[y][x] {
+				contour = append(contour, false)
+				continue
+			}
+			//visited==true from now on
+			if chr == '|' {
+				contour = append(contour, true)
+				continue
+			}
+			if info.start {
+				pipeStartY = info.y
+				contour = append(contour, true)
+				continue
+			}
+			if info.end && info.y == pipeStartY {
+				contour = append(contour, true)
+				continue
+			}
+		}
+		inside := false
+		for _, wall := range contour {
+			if wall {
+				inside = !inside
+			} else if inside {
+				insideLoopCount++
+			}
+		}
+	}
+	fmt.Println("inside count", insideLoopCount)
 }
