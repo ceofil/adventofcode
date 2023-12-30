@@ -57,31 +57,47 @@ func main() {
 		return
 	}
 	lines := strings.Split(string(fileContent), "\n")
-	new_lines := []string{}
-	for _, line := range lines {
-		new_lines = append(new_lines, line)
-		if !hasGalaxy(line) {
-			new_lines = append(new_lines, line)
-		}
-	}
-	lines = new_lines
-	xs := []int{}
-	for xi := 0; xi < len(lines[0]); xi++ {
-		if !hasGalaxy(getColumn(xi, lines)) {
-			xs = append(xs, xi)
-		}
-	}
 
-	lines = duplicateColumns(xs, lines)
 	galaxies := []Pos{}
+	columns := []int{}
+	rows := []int{}
 	for y, line := range lines {
 		for x, chr := range line {
-			if string(chr) == "#" {
-				galaxies = append(galaxies, Pos{x: x, y: y})
+			if chr == '#' {
+				galaxies = append(galaxies, Pos{x, y})
 			}
 		}
 	}
+	for x := 0; x < len(lines[0]); x++ {
+		if !hasGalaxy(getColumn(x, lines)) {
+			columns = append(columns, x)
+		}
+	}
 
+	for y, line := range lines {
+		if !hasGalaxy(line) {
+			rows = append(rows, y)
+		}
+	}
+
+	expand := 1000000
+	expand--
+	for idx := range galaxies {
+		xDiff := 0
+		yDiff := 0
+		for _, col := range columns {
+			if galaxies[idx].x > col {
+				xDiff += expand
+			}
+		}
+		for _, row := range rows {
+			if galaxies[idx].y > row {
+				yDiff += expand
+			}
+		}
+		galaxies[idx].x += xDiff
+		galaxies[idx].y += yDiff
+	}
 	// fmt.Println("galaxies", len(galaxies))
 	result := 0
 	for i := 0; i < len(galaxies)-1; i++ {
