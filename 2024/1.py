@@ -9,9 +9,19 @@ with open('inputs\\1') as fd:
 first.sort()
 second.sort()
 
-res = 0
+res1 = 0
 for f, s in zip(first, second):
-    res += abs(s - f)
+    res1 += abs(s - f)
 
-print(res)
+res2 = 0
+cache = dict()
+for f in first:
+    if f in cache:
+        score = cache[f]
+    else:
+        score = second.count(f)
+        cache[f] = score 
+    res2 += score * f
+print(res1)
+print(res2)
     
