@@ -1,23 +1,29 @@
 import numpy as np
 
-# def isIncOrDec(report):
+def wholeReportIsSafe(report):
+    diff = np.diff(report)
+    signs = np.sign(diff)
+    if not (np.all(signs == 1) or np.all(signs == -1)):
+        return False
     
+    adiff = np.abs(diff)
+    if not np.sum(adiff < 1) + np.sum(adiff > 3) == 0:
+        return False
+    return True
+
+def reportIsPartiallySafe(report):
+    if wholeReportIsSafe(report):
+        return True
+    for idx in range(report.shape[0]):
+        if wholeReportIsSafe(np.delete(report, idx)):
+            return True
+    return False
 
 res = 0
 with open('inputs\\2') as fd:
     for line in fd.readlines(): 
-        report = [int(x) for x in line.split(' ')]
-        diff = np.diff(report)
-        signs = np.sign(diff)
-        print(report)
-        if not (np.all(signs == 1) or np.all(signs == -1)):
-            print('not desc or asc')
-            continue
-        
-        adiff = np.abs(diff)
-        if not (np.all(adiff >= 1) and np.all(adiff <= 3)):
-            print('not 1 <= adiff <= 3')
-            continue
-        res += 1
+        report = np.array([int(x) for x in line.split(' ')])
+        if reportIsPartiallySafe(report):
+            res += 1
 
 print(res)  
