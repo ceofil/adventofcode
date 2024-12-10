@@ -4,7 +4,7 @@ import itertools
 
 
 with open("inputs/8", "r") as fd:
-    m = [line.replace("\n", "") for line in fd.readlines()]
+    m = [list(line.replace("\n", "")) for line in fd.readlines()]
 
 
 freq = dict()
@@ -26,7 +26,13 @@ def insideMap(node):
 
 def getAnti(n1, n2):
     dif = n1 - n2
-    return [n1 + dif, n2 - dif]
+    antis = []
+    for n, factor in zip([n1, n2], [1,-1]):
+        nextn = n
+        while insideMap(nextn):
+            antis.append(nextn)
+            nextn = nextn + dif * factor
+    return antis
 
 def processOneFrequency(nodes):
     anti = []
@@ -41,5 +47,4 @@ for f, nodes in freq.items():
 
 uniq = set([(int(p[0]),int(p[1])) for p in all_anti])
 valid_uniq = [anti for anti in uniq if insideMap(anti)]
-print(valid_uniq)
 print(len(valid_uniq))
