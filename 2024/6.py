@@ -1,37 +1,27 @@
 import numpy as np
-
-
+from tqdm import tqdm
 
 with open("inputs/6", "r") as fd:
     map = fd.readlines()
-    map = [row.replace("\n", "") for row in map]
+    map = [list(row.replace("\n", "")) for row in map]
 
-
+dir = np.array([0, -1])
 pos = None
-found = False
 
 for y, row in enumerate(map):
-    if found:
+    if pos is not None:
         break
     for x, cell in enumerate(row):
         if cell == '^':
             pos = np.array([x, y])
-            found = True
             break
 
-assert found, "^ not found"
+assert pos is not None, "^ not found"
+startingPos = pos.copy()
+startingDir = dir.copy()
 
-
-def printMap():
-    print('\n'.join(map))
-
-
-dir = np.array([0, -1])
 def rotateDir(dir):
-    return np.array([
-        -dir[1],
-        dir[0]
-    ])
+    return np.array([-dir[1], dir[0]])
 
 def inside(pos):
     return 0 <= pos[0] < len(map[0]) and 0 <= pos[1] < len(map)
@@ -39,23 +29,41 @@ def inside(pos):
 def getBlock(pos):
     return map[pos[1]][pos[0]]
 
+def run(startingPos, startingDir):
+    global map
+    pos = startingPos.copy()
+    dir = startingDir.copy()
+    visited = set((pos[0], pos[1], dir[0], dir[1]))
+    infLoop = False
+    while inside(pos):
+        tup = (pos[0], pos[1], dir[0], dir[1])
+        if tup in visited:
+            infLoop = True
+            break
+        else:
+            visited.add(tup)
+        nextPos = pos + dir
 
-visited = set()
+        if not inside(nextPos):
+            break
+        if getBlock(nextPos) == "#":
+            dir = rotateDir(dir)
+        else:
+            pos = nextPos
+    return infLoop
 
-def visit(pos):
-    print(pos)
-    visited.add((pos[0], pos[1]))
+    
+res = 0
+for y in tqdm(list(range(0, len(map)))):
+    for x in range(0, len(map[0])):
+        o = np.array([x,y])
+        if getBlock(o) != ".":
+            continue
+        map[o[1]][o[0]] = "#"
 
-visit(pos)
-while inside(pos):
-    visit(pos)
-    nextPos = pos + dir
-    if not inside(nextPos):
-        break
-    if getBlock(nextPos) == "#":
-        dir = rotateDir(dir)
-    else:
-        pos = nextPos
+        infLoop = run(startingPos, startingDir)
+        if infLoop:
+            res += 1
+        map[o[1]][o[0]] = "."
 
-printMap()
-print(len(visited))
+print(res)
