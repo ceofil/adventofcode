@@ -3,6 +3,8 @@ import itertools
 
 MULTIPLY = 0
 SUM = 1
+CONCAT = 2
+ALL_OPERATORS = [MULTIPLY, SUM, CONCAT]
 
 
 def compute(numbers, operators):
@@ -12,12 +14,15 @@ def compute(numbers, operators):
             total *= num
         elif op == SUM:
             total += num
+        elif op == CONCAT:
+            total = int(str(total)+str(num))
+            
         else:
             raise Exception("wrong operator")
     return total
 
 def check(result, numbers):
-    for operators in itertools.product([MULTIPLY, SUM], repeat=len(numbers)-1):
+    for operators in itertools.product(ALL_OPERATORS, repeat=len(numbers)-1):
         if compute(numbers, operators) == result:     
             return True
     return False
