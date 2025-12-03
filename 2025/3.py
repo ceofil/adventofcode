@@ -8,9 +8,14 @@ with open(sys.argv[1], 'r') as file:
         banks.append(list(map(int, line.strip())))
 
 def find_max_in_bank(bank):
-    max_idx1 = np.argmax(bank[:-1])
-    max_idx2 = max_idx1 + 1 + np.argmax(bank[max_idx1+1:])
-    return bank[max_idx1] * 10 + bank[max_idx2]
+    res = 0
+    prev_idx = -1
+    for k in list(range(12))[::-1]:
+        idx = prev_idx + 1 + np.argmax(bank[prev_idx + 1:len(bank)-k])
+        res = res * 10 + bank[idx]
+        prev_idx = idx
+    return res
+
 
 result = 0
 for bank in banks:
