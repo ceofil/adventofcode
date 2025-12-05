@@ -11,9 +11,19 @@ with open(sys.argv[1], 'r') as file:
         ranges.append((int(a), int(b)))
         
 result = 0
-for i in ids:
-    for r in ranges:
-        if r[0] <= i <= r[1]:
-            result += 1
-            break
-print("result:", result)
+
+ranges = sorted(ranges, key=lambda r: (r[0], r[1]))
+
+prev_max = -1
+for r in ranges:
+    left = max(r[0], prev_max + 1)
+    right = r[1]
+    if left > right:
+        continue
+    delta = right - left + 1
+    print(r, left, right, delta)
+    result += delta
+    prev_max = max(right,prev_max)
+    
+print(ranges)
+print("result:", result)  
